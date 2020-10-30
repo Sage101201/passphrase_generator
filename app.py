@@ -1,6 +1,7 @@
-from string import ascii_lowercase
 from random import sample
+from random import randint
 from alpha import alpha
+from alpha import symbs
 from flask import *
 import os
 from bs4 import BeautifulSoup as bs
@@ -12,6 +13,17 @@ import requests
 #         <p>{{ data }}</p>
 #     {% endfor %}
 # </div>
+
+#GENERATING PASSPHRASE
+def pphrase(inp):
+    c=inp.count(' ')
+    print(c)
+    for _ in range(randint(1,c)):
+        symb=sample(symbs,1)
+        symb=''.join(symb)
+        inp = inp.replace(' ', symb, 1)
+    inp=inp.replace(' ','')
+    return inp
 
 #GENERATING PASSWORD
 def generate(input):
@@ -34,7 +46,7 @@ def getphrase():
         page=requests.get(link)
         soup=bs(page.content,'html.parser')
         name=soup.find('p',class_="example")
-        ph=name.get_text().strip('."-\'‘')
+        ph=name.get_text().strip('."-\'‘—')
         phl=ph.split(' ')
         first=[]
         for i in phl:
@@ -100,6 +112,7 @@ app.config["DEBUG"] = True
 def not_found(e): 
 	return render_template("404.html")
 
+
 @app.route('/', methods=['GET','POST'])
 def home():
     if (request.method == 'GET'):
@@ -107,9 +120,17 @@ def home():
     
     elif (request.method == 'POST'):
         ph=getphrase()
-        pwd=generate(ph)
-        sc,pc=getstr(pwd)
+
+        if('pph' in dict(request.form)):
+            pwd=pphrase(ph)
+            sc='A Super Computer cannot crack it'
+            pc='A PC with GPU cannot crack it'
+        else:
+            pwd=generate(ph)
+            sc,pc=getstr(pwd)
+        
         return(render_template('index.html', phrase=ph, passwd=pwd, sc=sc, pc=pc))
+
 
 @app.route('/about', methods=['GET','POST'])
 def page1():
